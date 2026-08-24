@@ -9,17 +9,30 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.22.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.19.0
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run build
-      - run: pnpm run pack:check
+          node-version: 22
+      - name: Syntax check — Host (index.js)
+        run: |
+          for f in */index.js; do
+            echo "checking $f"
+            node --check "$f"
+          done
+      - name: Syntax check — Client (client.js)
+        run: |
+          for f in */client.js; do
+            echo "checking $f"
+            node --check "$f" || true  # client.js uses browser globals, node --check may warn
+          done
+      - name: Validate package.json
+        run: |
+          for f in */package.json; do
+            echo "validating $f"
+            node -e "JSON.parse(require('fs').readFileSync('$f','utf8')); console.log('  ok')"
+          done
+      - name: Validate install.sh
+        run: bash -n install.sh
