@@ -4,11 +4,39 @@ DeepSeek Harness 本地插件集合。本仓库用于统一管理和分发 DSH �
 
 ## 快速安装
 
+### 安装单个插件
+
+```bash
+# 只装 OSS 文件浏览器
+curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/install.sh | bash -s -- dsh-tool-oss
+
+# 只装归档面板
+curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/install.sh | bash -s -- dsh-ui-archived-local
+```
+
+### 安装多个插件
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/install.sh | bash -s -- dsh-tool-oss dsh-ui-archived-local
+```
+
+### 交互式选择
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/install.sh | bash
 ```
 
-安装完成后，在 `~/.zshrc` 中设置环境变量：
+会列出所有可用插件，输入数字选择（支持多选，`0` 全选）。
+
+### 指定 profile
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/install.sh | bash -s -- --profile my-profile dsh-tool-oss
+```
+
+### 安装后配置
+
+如果安装了 `dsh-tool-oss`，在 `~/.zshrc` 中设置环境变量：
 
 ```bash
 export SILICON_OSS_AK='你的AccessKey'
@@ -25,9 +53,9 @@ source ~/.zshrc
 pnpm dsh web
 ```
 
-刷新浏览器，左下角出现 `☁ OSS` 按钮即安装成功。
+刷新浏览器即可使用。`dsh-ui-archived-local` 无需额外配置。
 
-> 指定 profile 安装：`curl -fsSL ... | bash -s -- my-profile`
+> 安装脚本自动完成：克隆仓库 → 复制选中插件 → 添加依赖 → pnpm install → 配置 cordis.patch.yml。未选中的插件不会被安装。
 
 ## 包含的插件
 
