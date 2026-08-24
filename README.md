@@ -2,6 +2,33 @@
 
 DeepSeek Harness 本地插件集合。本仓库用于统一管理和分发 DSH 的自定义插件，后续新增插件均追加至此仓库。
 
+## 快速安装
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/install.sh | bash
+```
+
+安装完成后，在 `~/.zshrc` 中设置环境变量：
+
+```bash
+export SILICON_OSS_AK='你的AccessKey'
+export SILICON_OSS_SK='你的SecretKey'
+export SILICON_OSS_ENDPOINT='https://s3.6scloud.com'
+export SILICON_OSS_REGION='cn-east-1'
+export SILICON_OSS_BUCKET='你的bucket名'
+```
+
+然后：
+
+```bash
+source ~/.zshrc
+pnpm dsh web
+```
+
+刷新浏览器，左下角出现 `☁ OSS` 按钮即安装成功。
+
+> 指定 profile 安装：`curl -fsSL ... | bash -s -- my-profile`
+
 ## 包含的插件
 
 | 插件 | 版本 | 说明 |
