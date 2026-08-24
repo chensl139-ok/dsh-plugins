@@ -7,9 +7,9 @@ set -euo pipefail
 #   安装指定插件:  bash install.sh dsh-tool-oss
 #   安装多个插件:  bash install.sh dsh-tool-oss dsh-ui-archived-local
 #   指定 profile:  bash install.sh --profile my-profile dsh-tool-oss
-#   远程一键:      curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/install.sh | bash -s -- dsh-tool-oss
+#   远程一键:      curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-plugins/main/install.sh | bash -s -- dsh-tool-oss
 
-REPO_URL="https://github.com/chensl139-ok/dsh-tool-oss.git"
+REPO_URL="https://github.com/chensl139-ok/dsh-plugins.git"
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT
 

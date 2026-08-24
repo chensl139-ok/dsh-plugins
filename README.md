@@ -8,22 +8,22 @@ DeepSeek Harness 本地插件集合。本仓库用于统一管理和分发 DSH �
 
 ```bash
 # 只装 OSS 文件浏览器
-curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/install.sh | bash -s -- dsh-tool-oss
+curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-plugins/main/install.sh | bash -s -- dsh-tool-oss
 
 # 只装归档面板
-curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/install.sh | bash -s -- dsh-ui-archived-local
+curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-plugins/main/install.sh | bash -s -- dsh-ui-archived-local
 ```
 
 ### 安装多个插件
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/install.sh | bash -s -- dsh-tool-oss dsh-ui-archived-local
+curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-plugins/main/install.sh | bash -s -- dsh-tool-oss dsh-ui-archived-local
 ```
 
 ### 交互式选择
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-plugins/main/install.sh | bash
 ```
 
 会列出所有可用插件，输入数字选择（支持多选，`0` 全选）。
@@ -31,7 +31,7 @@ curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/inst
 ### 指定 profile
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-tool-oss/main/install.sh | bash -s -- --profile my-profile dsh-tool-oss
+curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-plugins/main/install.sh | bash -s -- --profile my-profile dsh-tool-oss
 ```
 
 ### 安装后配置
