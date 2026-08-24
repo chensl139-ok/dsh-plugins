@@ -1,6 +1,19 @@
-# dsh-tool-oss
+# DSH 插件存储仓库
 
-DeepSeek Harness 插件：OSS 对象存储文件浏览器，支持多 Bucket、文件/文件夹上传、递归删除，对接硅基流动 / 腾讯云 COS / 阿里云 OSS 等任意 S3 兼容存储。
+DeepSeek Harness 本地插件集合。本仓库用于统一管理和分发 DSH 的自定义插件，后续新增插件均追加至此仓库。
+
+## 包含的插件
+
+| 插件 | 版本 | 说明 |
+|---|---|---|
+| [dsh-tool-oss](./dsh-tool-oss/) | v0.2.0 | OSS 对象存储文件浏览器，支持多 Bucket、文件/文件夹上传、递归删除，对接硅基流动 / 腾讯云 COS / 阿里云 OSS 等任意 S3 兼容存储 |
+| [dsh-ui-archived-local](./dsh-ui-archived-local/) | v0.1.0 | 归档面板覆盖插件，将 shipped ui-archived 的 `window.confirm` 替换为自定义居中 ModalDialog |
+
+---
+
+## dsh-tool-oss
+
+OSS 对象存储文件浏览器。
 
 > **零外部依赖** — 仅用 Node.js 内置 `crypto`（AWS SigV4 签名）和全局 `fetch`，不安装任何 SDK。
 
