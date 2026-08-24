@@ -41,11 +41,11 @@ window.__ModuleLoader__.load({
 
     var Z = {
       overlay: function(z) { return { position:"fixed", inset:"0", zIndex:z||1500, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,.5)" }; },
-      card: function(w, h) { return { background:"var(--dsw-alias-bg-overlay, #fff)", border:"1px solid var(--dsw-alias-border-l1, #e0e0e0)", borderRadius:"16px", boxShadow:"0 20px 60px rgba(0,0,0,.3)", width:"min("+(w||520)+"px, calc(100vw - 32px))", maxHeight:"min("+(h||82)+"vh, 760px)", display:"flex", flexDirection:"column", overflow:"hidden" }; },
+      card: function(w, h) { return { background:"var(--dsw-alias-bg-overlay, #fff)", border:"1px solid var(--dsw-alias-border-l1, #e0e0e0)", borderRadius:"16px", boxShadow:"0 20px 60px rgba(0,0,0,.3)", width:"min("+(w||520)+"px, calc(100vw - 32px))", maxHeight:"min("+(h||88)+"vh, 860px)", display:"flex", flexDirection:"column", overflow:"hidden" }; },
       header: { display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 20px", borderBottom:"1px solid var(--dsw-alias-border-l1, #e0e0e0)" },
       headerTitle: { color:"var(--dsw-alias-label-primary, #1a1a1a)", fontWeight:"600", fontSize:"15px" },
       closeBtn: { border:"0", background:"transparent", color:"var(--dsw-alias-label-secondary, #999)", fontSize:"22px", lineHeight:"1", cursor:"pointer", padding:"0 4px" },
-      body: { flex:"1 1 auto", overflow:"auto", padding:"16px 20px", display:"flex", flexDirection:"column", gap:"12px" },
+      body: { flex:"1 1 auto", overflow:"hidden", padding:"16px 20px", display:"flex", flexDirection:"column", gap:"12px", minHeight:"0" },
       btnPrimary: function(disabled) { return { padding:"8px 22px", border:"1px solid transparent", borderRadius:"10px", background: disabled ? "var(--dsw-alias-bg-layer-2, #f0f0f0)" : "var(--dsw-alias-color-accent, #4a8cff)", color: disabled ? "var(--dsw-alias-label-secondary, #999)" : "#fff", fontFamily:"inherit", fontSize:"13px", cursor: disabled ? "not-allowed" : "pointer", fontWeight:"500", whiteSpace:"nowrap" }; },
       btnSecondary: { padding:"8px 22px", border:"1px solid var(--dsw-alias-border-l1, #e0e0e0)", borderRadius:"10px", background:"var(--dsw-alias-bg-layer-2, #f0f0f0)", color:"var(--dsw-alias-label-primary, #1a1a1a)", fontFamily:"inherit", fontSize:"13px", cursor:"pointer", whiteSpace:"nowrap" },
     };
@@ -339,7 +339,7 @@ window.__ModuleLoader__.load({
             React.createElement("span", { style:{ fontSize:"12px", flex:"1 1 auto", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", color:"var(--dsw-alias-label-primary, #333)" } }, "📄 " + vk),
             sb("← 返回", function(){ setVk(null); setVc(""); })
           ),
-          React.createElement("pre", { style:{ flex:"1 1 auto", margin:"0", padding:"12px", overflow:"auto", fontFamily:"var(--dsw-alias-font-mono, monospace)", fontSize:"12px", lineHeight:"1.6", color:"var(--dsw-alias-label-primary, #333)", whiteSpace:"pre-wrap", wordBreak:"break-word" } }, busy ? "加载中…" : vc)
+          React.createElement("pre", { style:{ flex:"1 1 auto", margin:"0", padding:"12px", overflow:"auto", minHeight:"0", WebkitOverflowScrolling:"touch", fontFamily:"var(--dsw-alias-font-mono, monospace)", fontSize:"12px", lineHeight:"1.6", color:"var(--dsw-alias-label-primary, #333)", whiteSpace:"pre-wrap", wordBreak:"break-word" } }, busy ? "加载中…" : vc)
         );
       } else if (!objs.length && !dirs.length) {
         lc = React.createElement("div", { style:{ padding:"48px", textAlign:"center", color:"var(--dsw-alias-label-secondary, #999)", fontSize:"13px" } }, "(空)");
@@ -362,9 +362,9 @@ window.__ModuleLoader__.load({
             sb("🗑", function(){ delObj(o.key); }, { dis:busy, style:{ flex:"0 0 auto", padding:"3px 8px", border:"0", borderRadius:"6px", background:"transparent", color:"var(--dsw-alias-color-danger, #d0334b)", fontSize:"14px", cursor: busy?"wait":"pointer" } })
           ));
         });
-        lc = React.createElement("div", { style:{ overflowY:"auto", flex:"1 1 auto" } }, rows);
+        lc = React.createElement("div", { style:{ overflowY:"auto", flex:"1 1 auto", minHeight:"0", WebkitOverflowScrolling:"touch" } }, rows);
       }
-      body.push(React.createElement("div", { key:"list", style:{ flex:"1 1 auto", overflow:"hidden", marginTop:"6px", display:"flex", flexDirection:"column", minHeight:"120px" } }, lc));
+      body.push(React.createElement("div", { key:"list", style:{ flex:"1 1 auto", overflow:"hidden", marginTop:"6px", display:"flex", flexDirection:"column", minHeight:"200px" } }, lc));
 
       return React.createElement("div", { style: Z.card(720, 84) },
         React.createElement("div", { style: Z.header },
