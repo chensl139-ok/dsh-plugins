@@ -89,6 +89,14 @@ window.__ModuleLoader__.load({
       function onPick(fileList) {
         if (!fileList || !fileList.length) return;
         var files = Array.prototype.slice.call(fileList);
+        // Filter out macOS/Windows junk files (.DS_Store, Thumbs.db, etc.)
+        files = files.filter(function(f) {
+          var name = f.name;
+          if (name.startsWith('.')) return false;
+          if (name === 'Thumbs.db' || name === 'Desktop.ini') return false;
+          return true;
+        });
+        if (!files.length) return;
         var pairs = files.map(function(f) {
           var key = (f.webkitRelativePath && f.webkitRelativePath.indexOf("/") >= 0) ? f.webkitRelativePath : f.name;
           return { file: f, key: key };
