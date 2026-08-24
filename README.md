@@ -7,7 +7,7 @@ DeepSeek Harness 本地插件集合。本仓库用于统一管理和分发 DSH �
 | 插件 | 版本 | 说明 |
 |---|---|---|
 | [dsh-tool-oss](./dsh-tool-oss/) | v0.2.0 | OSS 对象存储文件浏览器，支持多 Bucket、文件/文件夹上传、递归删除，对接硅基流动 / 腾讯云 COS / 阿里云 OSS 等任意 S3 兼容存储 |
-| [dsh-ui-archived-local](./dsh-ui-archived-local/) | v0.1.0 | 归档面板覆盖插件，将 shipped ui-archived 的 `window.confirm` 替换为自定义居中 ModalDialog |
+| [dsh-ui-archived-local](./dsh-ui-archived-local/) | v0.1.0 | 归档面板插件，侧边栏「已归档」面板，支持查看/打开/取消归档/永久删除，自定义居中确认弹窗替代 `window.confirm` |
 
 ---
 
@@ -168,6 +168,49 @@ pnpm dsh web
 - **二进制安全**：文件以 base64 编码传输，Host 端 `Buffer.from(content, 'base64')` 解码后 PUT
 - **文件夹删除**：S3 服务强制 `delimiter=/`，采用递归方式逐层删除（先删文件，再递归子目录）
 - **生命周期**：所有 RPC 通道和 Tool 注册均 fiber-scoped，插件卸载时自动清理
+
+---
+
+## dsh-ui-archived-local
+
+侧边栏「已归档」面板插件。在 DSH 侧边栏提供归档会话列表，支持查看、打开、取消归档和永久删除。将原 shipped `ui-archived` 的 `window.confirm` / `window.alert` 替换为自定义居中 `ModalDialog`。
+
+### 功能
+
+- 显示已归档会话的标题、工作区和相对时间
+- 点击会话即可重新打开
+- Host 支持 `unarchiveSession` 时可以取消归档
+- Host 支持 `deleteSession` 时可以永久删除（删除前居中确认弹窗）
+- Host 尚未安装补丁时自动隐藏对应操作按钮，查看和打开功能不受影响
+- 所有确认/错误弹窗均为自定义居中 `ModalDialog`（非原生 `window.confirm`）
+
+### Host 补丁（可选）
+
+`patches/` 目录包含为 DSH 源码添加 `unarchiveSession` 和 `deleteSession` 的可选补丁：
+
+```
+patches/
+├── unarchiveSession.diff          # 为 workspaces 服务添加 unarchiveSession 方法
+├── unarchiveSession.tests.diff    # 对应测试
+├── deleteSession.diff             # 为 workspaces 服务添加 deleteSession 方法
+├── deleteSession.tests.diff       # 对应测试
+└── README.md                      # 补丁说明和应用步骤
+```
+
+不安装补丁时面板自动降级为查看 + 打开模式。
+
+### 安装
+
+在 `cordis.patch.yml` 中禁用 shipped `ui-archived` 并挂载本地版：
+
+```yaml
+- id: ui-archived
+  disabled: true
+
+- insert:
+    - id: ui-archived-local
+      name: dsh-ui-archived-local
+```
 
 ## License
 
