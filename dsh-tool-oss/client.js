@@ -334,8 +334,8 @@ window.__ModuleLoader__.load({
       if (ld) {
         lc = React.createElement("div", { style:{ padding:"48px", textAlign:"center", color:"var(--dsw-alias-label-secondary, #999)", fontSize:"13px" } }, "加载中…");
       } else if (vk) {
-        lc = React.createElement("div", { style:{ display:"flex", flexDirection:"column", height:"100%" } },
-          React.createElement("div", { style:{ display:"flex", alignItems:"center", gap:"8px", padding:"8px 0", borderBottom:"1px solid var(--dsw-alias-border-l1, #f0f0f0)" } },
+        lc = React.createElement("div", { style:{ display:"flex", flexDirection:"column", flex:"1 1 auto", minHeight:"0", overflow:"hidden" } },
+          React.createElement("div", { style:{ display:"flex", alignItems:"center", gap:"8px", padding:"8px 0", borderBottom:"1px solid var(--dsw-alias-border-l1, #f0f0f0)", flex:"0 0 auto" } },
             React.createElement("span", { style:{ fontSize:"12px", flex:"1 1 auto", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", color:"var(--dsw-alias-label-primary, #333)" } }, "📄 " + vk),
             sb("← 返回", function(){ setVk(null); setVc(""); })
           ),
