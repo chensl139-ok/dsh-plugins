@@ -61,7 +61,7 @@ pnpm dsh web
 
 | 插件 | 版本 | 说明 |
 |---|---|---|
-| [dsh-tool-oss](./dsh-tool-oss/) | v0.2.0 | OSS 对象存储文件浏览器，支持多 Bucket、文件/文件夹上传、递归删除，对接硅基流动 / 腾讯云 COS / 阿里云 OSS 等任意 S3 兼容存储 |
+| [dsh-tool-oss](./dsh-tool-oss/) | v0.3.0 | OSS 对象存储文件浏览器，支持多 Bucket、文件/文件夹上传、递归删除，对接硅基流动 / 腾讯云 COS / 阿里云 OSS 等任意 S3 兼容存储 |
 | [dsh-ui-archived-local](./dsh-ui-archived-local/) | v0.1.0 | 归档面板插件，侧边栏「已归档」面板，支持查看/打开/取消归档/永久删除，自定义居中确认弹窗替代 `window.confirm` |
 
 ---
