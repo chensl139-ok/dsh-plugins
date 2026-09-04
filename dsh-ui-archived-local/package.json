@@ -1,7 +1,7 @@
 {
   "name": "dsh-ui-archived-local",
-  "version": "0.1.0",
-  "description": "Local override of ui-archived: same UI, custom centered confirm/alert dialogs instead of window.confirm/alert.",
+  "version": "0.2.0",
+  "description": "Searchable archive panel with retryable deletion, pending state and accessible centered confirmation.",
   "type": "module",
   "main": "index.js",
   "license": "MIT",

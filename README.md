@@ -62,7 +62,7 @@ pnpm dsh web
 | 插件 | 版本 | 说明 |
 |---|---|---|
 | [dsh-tool-oss](./dsh-tool-oss/) | v0.3.0 | OSS 对象存储文件浏览器，支持多 Bucket、文件/文件夹上传、递归删除，对接硅基流动 / 腾讯云 COS / 阿里云 OSS 等任意 S3 兼容存储 |
-| [dsh-ui-archived-local](./dsh-ui-archived-local/) | v0.1.0 | 归档面板插件，侧边栏「已归档」面板，支持查看/打开/取消归档/永久删除，自定义居中确认弹窗替代 `window.confirm` |
+| [dsh-ui-archived-local](./dsh-ui-archived-local/) | v0.2.0 | 归档面板插件，侧边栏「已归档」面板，支持查看/打开/取消归档/永久删除，自定义居中确认弹窗替代 `window.confirm` |
 
 ---
 
@@ -238,6 +238,18 @@ pnpm dsh web
 - Host 支持 `deleteSession` 时可以永久删除（删除前居中确认弹窗）
 - Host 尚未安装补丁时自动隐藏对应操作按钮，查看和打开功能不受影响
 - 所有确认/错误弹窗均为自定义居中 `ModalDialog`（非原生 `window.confirm`）
+
+### 修复删除不彻底（必须更新 Host）
+
+前端现已保留删除失败的归档项，显示错误并允许重试；删除期间禁用重复操作。支持搜索、工作区筛选、更新时间排序和居中确认框。
+
+后端修复见 [补丁与适用基线](dsh-ui-archived-local/patches/README.md)：先释放自己持有的闲置 Agent / Session，等待最终写入结束，再删除 JSONL / SQLite 记录、工作区成员和归档索引。**安装脚本只更新插件；后端补丁需要应用、构建并重启 DSH，不能只刷新浏览器。**
+
+浏览器代码由 [dsh-archived-panel](https://github.com/chensl139-ok/dsh-archived-panel) 源码生成。维护时在该仓库执行 `pnpm build` 和 `pnpm export:local /path/to/dsh-plugins/dsh-ui-archived-local`，再同步版本与文档。
+
+### Complete deletion fix
+
+The frontend preserves failed archive entries for retry and blocks duplicate operations. The [Host patch](dsh-ui-archived-local/patches/README.md) disposes owned idle agents, drains pending writes, then deletes durable records and workspace/archive indexes. Installing the plugin alone is insufficient: apply the matching Host patch, rebuild and restart DSH. The browser artifact is generated from dsh-archived-panel source.
 
 ### Host 补丁（可选）
 
