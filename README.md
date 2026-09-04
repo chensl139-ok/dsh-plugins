@@ -2,6 +2,10 @@
 
 DeepSeek Harness 本地插件集合。本仓库用于统一管理和分发 DSH 的自定义插件，后续新增插件均追加至此仓库。
 
+## 最新发布
+
+[v1.4.0 — SiliconFlow Responses 兼容桥接](https://github.com/chensl139-ok/dsh-plugins/releases/tag/v1.4.0) 包含 `dsh-siliconflow-compat@0.2.1`、源码插件安装包和 SHA-256 校验文件。仓库 Release 版本与各插件版本独立管理；已有 OSS 和归档插件保持各自版本。
+
 ## v1.3.0：归档删除修复
 
 [下载 Release](../../releases/tag/v1.3.0) · 归档面板 **0.2.1** · 对应独立插件 **0.4.1**
@@ -318,6 +322,40 @@ patches/
     - id: ui-archived-local
       name: dsh-ui-archived-local
 ```
+
+## dsh-siliconflow-compat
+
+为 SiliconFlow 自定义提供方修正协议端点，并提供 Responses 选择的兼容桥接：
+
+| Harness 配置 | 实际请求 | 插件行为 |
+|---|---|---|
+| `openai-responses` + SiliconFlow 官方端点 | `/v1/messages` | 保留协议选择，通过 Messages 适配器处理流式输出、思考和工具往返 |
+| `anthropic-messages` + SiliconFlow 官方端点 | `/v1/messages` | 将基础地址修正到主机根目录，避免重复 `/v1` |
+| `openai-completions` | `/v1/chat/completions` | 官方基础地址使用 `/v1`，正常分派 |
+| 其他提供方或私有网关 | 原配置端点 | 不启用 Responses 桥接 |
+
+支持官方 `.cn` 和 `.com` 主机。密钥按请求从 Harness 凭据服务读取，不写入插件配置；默认凭据引用为 `SILICONFLOW_API_KEY`，也可沿用提供方的 `apiKeyEnv`。
+
+**运行条件：** 已安装依赖的 Harness 源码检出，以及 `tsx/esm` 启动方式（例如源码目录中的 `pnpm dsh web`）。插件调用内部模块，验证基线为 `8eb6aa069a`；升级 Harness 后需要重新测试。安装脚本会把 `DSH_HARNESS_ROOT` 写入插件的 `harnessRoot` 配置，插件安装目录无需与源码相邻。
+
+**兼容边界：** 这不是 SiliconFlow 原生 Responses API，也不向外部客户端提供 `/responses` 服务；不实现 `previous_response_id`、服务端响应存储或 OpenAI 托管工具。
+
+### 升级与排错
+
+1. 设置 `DSH_HARNESS_ROOT`，重新运行上方 SiliconFlow 安装命令；或下载 [Release 插件包](https://github.com/chensl139-ok/dsh-plugins/releases/tag/v1.4.0)，校验后解压到 profile 的 `local-plugins/`。
+2. 如果之前手工填写了本机插件绝对路径，将原 `siliconflow-compat` 条目替换为包名 `dsh-siliconflow-compat`，并设置 `config.harnessRoot`。不要同时挂载新旧两份插件。
+3. 重启 Web 服务并刷新浏览器，保留提供方的 `openai-responses` 选择。
+
+- **`/v1/v1/messages` 返回 404：** 检查插件是否加载，Messages 基础地址应为主机根目录。
+- **`/v1/responses` 返回 404：** 检查桥接插件是否加载；仅修改 URL 不能补出原生 Responses 接口。
+- **`Harness source not found`：** 将 `harnessRoot` 指向完整源码检出，而不是插件目录或 npm 发行包。
+- **`MISSING_CREDENTIAL`：** 在模型设置中保存 API Key，或配置相应的凭据引用。
+
+[完整配置、限制和测试命令](./dsh-siliconflow-compat/README.md)。已验证真实 GLM-5.3 文本输出与 `lookup_code` 工具往返；本地测试覆盖协议分派、取消、缺失凭据、卸载恢复及重复安装。
+
+### English
+
+Release v1.4.0 adds `dsh-siliconflow-compat@0.2.1`. The plugin bridges the Harness Responses selection to SiliconFlow Messages, fixes official endpoint prefixes, and leaves private gateways and other providers on their normal dispatch. It requires a dependency-installed Harness source checkout and the `tsx/esm` runtime. Set `DSH_HARNESS_ROOT` before installation, migrate any older absolute plugin entry, and restart the Web service. This is conversation compatibility, not a native Responses HTTP server.
 
 ## License
 
