@@ -1,6 +1,6 @@
 {
   "name": "dsh-ui-archived-local",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Searchable archive panel with retryable deletion, pending state and accessible centered confirmation.",
   "type": "module",
   "main": "index.js",
