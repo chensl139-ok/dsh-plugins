@@ -36,3 +36,12 @@ jobs:
           done
       - name: Validate install.sh
         run: bash -n install.sh
+      - name: SiliconFlow endpoint and source resolver tests
+        run: node --test dsh-siliconflow-compat/endpoints.test.js dsh-siliconflow-compat/harness.test.js
+      - name: Syntax check — SiliconFlow plugin modules
+        run: |
+          for f in dsh-siliconflow-compat/*.js dsh-siliconflow-compat/scripts/*.mjs; do
+            node --check "$f"
+          done
+      - name: SiliconFlow installer regression
+        run: node --test tests/siliconflow-install.test.mjs

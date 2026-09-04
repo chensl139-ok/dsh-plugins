@@ -1,0 +1,14 @@
+{
+  "name": "dsh-siliconflow-compat",
+  "version": "0.2.1",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "description": "SiliconFlow Responses-to-Messages compatibility bridge and official endpoint normalization for DeepSeek Harness",
+  "scripts": {
+    "test": "node scripts/test.mjs"
+  },
+  "license": "MIT"
+}

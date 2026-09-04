@@ -14,6 +14,17 @@ curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-plugins/main/insta
 curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-plugins/main/install.sh | bash -s -- dsh-ui-archived-local
 ```
 
+### 安装 SiliconFlow 协议兼容插件
+
+此插件依赖 Harness 源码与 `tsx/esm` 启动方式。先指定源码目录，再运行安装脚本；安装器会将该路径写入插件配置。
+
+```bash
+export DSH_HARNESS_ROOT=/path/to/deepseek-harness
+curl -fsSL https://raw.githubusercontent.com/chensl139-ok/dsh-plugins/main/install.sh | bash -s -- dsh-siliconflow-compat
+```
+
+保留 `openai-responses` 选择时，插件通过 Messages 上游完成会话，并修正官方 Messages 端点。它不提供原生 Responses HTTP API。详见[安装与兼容性说明](./dsh-siliconflow-compat/README.md)。
+
 ### 安装多个插件
 
 ```bash
@@ -63,6 +74,7 @@ pnpm dsh web
 |---|---|---|
 | [dsh-tool-oss](./dsh-tool-oss/) | v0.3.0 | OSS 对象存储文件浏览器，支持多 Bucket、文件/文件夹上传、递归删除，对接硅基流动 / 腾讯云 COS / 阿里云 OSS 等任意 S3 兼容存储 |
 | [dsh-ui-archived-local](./dsh-ui-archived-local/) | v0.2.1 | 归档面板插件，侧边栏「已归档」面板，支持查看/打开/取消归档/永久删除，自定义居中确认弹窗替代 `window.confirm` |
+| [dsh-siliconflow-compat](./dsh-siliconflow-compat/) | v0.2.1 | Responses → Messages 兼容桥接、官方端点修正；依赖 Harness 源码 |
 
 ---
 

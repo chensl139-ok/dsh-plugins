@@ -33,6 +33,7 @@ PLUGINS_DIR="$PROFILE_DIR/local-plugins"
 declare -a AVAILABLE=(
   "dsh-tool-oss|OSS 对象存储文件浏览器（多 Bucket、文件/文件夹上传、递归删除）"
   "dsh-ui-archived-local|归档面板（自定义居中确认弹窗替代 window.confirm）"
+  "dsh-siliconflow-compat|SiliconFlow Responses → Messages 兼容桥接与端点修正"
 )
 
 # 如果未指定插件，交互式选择
@@ -66,6 +67,19 @@ if [ ${#PLUGINS[@]} -eq 0 ]; then
     exit 0
   fi
 fi
+
+# Source-backed bridge: validate the checkout before changing the profile.
+for plugin in "${PLUGINS[@]}"; do
+  if [ "$plugin" = "dsh-siliconflow-compat" ]; then
+    DSH_HARNESS_ROOT="${DSH_HARNESS_ROOT:-$PWD}"
+    if [ ! -f "$DSH_HARNESS_ROOT/packages/llm/llm-pi-ai/src/adapter.ts" ]; then
+      echo "❌ dsh-siliconflow-compat 需要 Harness 源码：请设置 DSH_HARNESS_ROOT 后重试。"
+      exit 1
+    fi
+    DSH_HARNESS_ROOT=$(cd "$DSH_HARNESS_ROOT" && pwd)
+    export DSH_HARNESS_ROOT
+  fi
+done
 
 echo ""
 echo "📦 安装到 profile: $PROFILE"
@@ -156,6 +170,24 @@ if echo "${PLUGINS[@]}" | grep -qw 'dsh-ui-archived-local' && [ "$has_archived" 
 YAML
   echo "✅ dsh-ui-archived-local 已配置"
 fi
+
+# dsh-siliconflow-compat uses a recorded checkout path, independent of launch cwd.
+for plugin in "${PLUGINS[@]}"; do
+  if [ "$plugin" = "dsh-siliconflow-compat" ]; then
+    node --input-type=module - "$PATCH" <<'JS'
+import fs from 'node:fs';
+const path = process.argv[2];
+const text = fs.existsSync(path) ? fs.readFileSync(path, 'utf8') : '';
+if (!/^\s*- id: siliconflow-compat\s*$/m.test(text)) {
+  const root = JSON.stringify(process.env.DSH_HARNESS_ROOT);
+  fs.appendFileSync(path, `\n# SiliconFlow Responses compatibility bridge\n- insert:\n    - id: siliconflow-compat\n      name: dsh-siliconflow-compat\n      config:\n        harnessRoot: ${root}\n`);
+  console.log('✅ dsh-siliconflow-compat 已配置');
+} else {
+  console.log('✅ siliconflow-compat 已存在，保留当前配置；旧的绝对插件路径请按 README 迁移。');
+}
+JS
+  fi
+done
 
 # ── 提示 ──────────────────────────────────────────────────────────────────────
 echo ""
