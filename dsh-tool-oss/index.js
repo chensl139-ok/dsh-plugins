@@ -6,8 +6,8 @@
  *  2. A `/oss` Connection RPC channel for the browser UI
  *     (providers/list/put/putBatch/getText/delete/deleteFolder).
  *
- * All provider config (endpoint, region, bucket, credentials) is read from
- * named ENV VARS — no secrets in composition files.
+ * All provider config is resolved per operation through DSH credentials refs.
+ * The local provider layers process env, its owner-only store, and DSH env files.
  *
  * Zero external dependencies: Node crypto (SigV4) + global fetch.
  */
@@ -19,7 +19,7 @@ import z from '@deepseek-ai/schemastery'
 import os from 'node:os'
 
 export const name = 'tool-oss'
-export const inject = ['tools', 'connection']
+export const inject = ['tools', 'connection', 'credentials']
 
 const DEFAULT_TIMEOUT_MS = 60_000
 const MAX_INLINE_CHARS = 20_000
@@ -107,24 +107,41 @@ export const Config = z.object({
   timeoutMs: z.number().default(DEFAULT_TIMEOUT_MS),
 })
 
-function resolveEnv(cfg, direct, env) { return cfg[direct] || (cfg[env] ? process.env[cfg[env]] : '') || '' }
+async function resolveConfigValue(ctx, cfg, direct, reference) {
+  if (cfg[direct]) return cfg[direct]
+  if (!cfg[reference]) return ''
+  const resolved = await ctx.credentials.resolve(cfg[reference])
+  return resolved?.value || ''
+}
 
-function clientFor(providers, name) {
+async function clientFor(ctx, providers, name) {
   const cfg = providers[name]
   if (!cfg) throw new Error("unknown OSS provider '"+name+"'; configured: "+(Object.keys(providers).join(', ')||'none'))
-  const endpoint = resolveEnv(cfg, 'endpoint', 'endpointEnv')
-  const region = resolveEnv(cfg, 'region', 'regionEnv')
-  const bucket = resolveEnv(cfg, 'bucket', 'bucketEnv')
-  const ak = resolveEnv(cfg, 'accessKeyId', 'accessKeyIdEnv')
-  const sk = resolveEnv(cfg, 'secretAccessKey', 'secretAccessKeyEnv')
+  const [endpoint, region, bucket, ak, sk] = await Promise.all([
+    resolveConfigValue(ctx, cfg, 'endpoint', 'endpointEnv'),
+    resolveConfigValue(ctx, cfg, 'region', 'regionEnv'),
+    resolveConfigValue(ctx, cfg, 'bucket', 'bucketEnv'),
+    resolveConfigValue(ctx, cfg, 'accessKeyId', 'accessKeyIdEnv'),
+    resolveConfigValue(ctx, cfg, 'secretAccessKey', 'secretAccessKeyEnv'),
+  ])
   const missing = []
   if (!endpoint) missing.push(cfg.endpointEnv || 'endpoint')
   if (!region) missing.push(cfg.regionEnv || 'region')
   if (!bucket) missing.push(cfg.bucketEnv || 'bucket')
   if (!ak) missing.push(cfg.accessKeyIdEnv || 'accessKeyId')
   if (!sk) missing.push(cfg.secretAccessKeyEnv || 'secretAccessKey')
-  if (missing.length) throw new Error("OSS provider '"+name+"' config missing: set env "+missing.join(', '))
+  if (missing.length) throw new Error("OSS provider '"+name+"' config missing: configure DSH credential refs "+missing.join(', '))
   return new S3Client({ endpoint, region, bucket, accessKeyId: ak, secretAccessKey: sk })
+}
+
+async function providerSummary(ctx, providers, name) {
+  const cfg = providers[name]
+  const [endpoint, region, bucket] = await Promise.all([
+    resolveConfigValue(ctx, cfg, 'endpoint', 'endpointEnv'),
+    resolveConfigValue(ctx, cfg, 'region', 'regionEnv'),
+    resolveConfigValue(ctx, cfg, 'bucket', 'bucketEnv'),
+  ])
+  return { name, endpoint, region, bucket }
 }
 
 // ── Recursive folder delete (S3 forces delimiter=/ so we recurse) ─────────────
@@ -178,7 +195,7 @@ function applyOssTool(ctx, providers, timeoutMs) {
     async execute(args, exec) {
       const { action, key } = args
       try {
-        const client = clientFor(providers, args.provider)
+        const client = await clientFor(ctx, providers, args.provider)
         if (action === 'put') {
           if (!key) throw new Error('put requires key')
           let body, ct
@@ -198,7 +215,7 @@ function applyOssTool(ctx, providers, timeoutMs) {
         if (action === 'delete') { if (!key) throw new Error('delete requires key'); await client.delete(key, exec.signal); return { action, provider: args.provider, key, deleted: true } }
         if (action === 'list') {
           const r = await client.list(args.prefix, args.maxKeys, exec.signal)
-          return { action, provider: args.provider, bucket: providers[args.provider].bucket, prefix: args.prefix||'', objects: r.objects, prefixes: r.prefixes, truncated: r.truncated }
+          return { action, provider: args.provider, bucket: client.bucket, prefix: args.prefix||'', objects: r.objects, prefixes: r.prefixes, truncated: r.truncated }
         }
         if (action === 'deleteFolder') {
           const pfx = args.prefix || key || ''
@@ -217,28 +234,24 @@ function applyOssTool(ctx, providers, timeoutMs) {
 // ── RPC channel /oss ─────────────────────────────────────────────────────────
 
 function applyOssRpc(ctx, providers) {
-  ctx.effect(() => {
-    const dispose = ctx.connection.rpc.handle('/oss', async (endpoint, payload, signal) => {
+  ctx.connection.rpc.handle('/oss', async (endpoint, payload, signal) => {
       try {
         const p = payload || {}
         if (endpoint === 'providers') {
-          return { ok: true, value: Object.keys(providers).map(name => {
-            const cfg = providers[name]
-            return { name, endpoint: resolveEnv(cfg,'endpoint','endpointEnv'), bucket: resolveEnv(cfg,'bucket','bucketEnv'), region: resolveEnv(cfg,'region','regionEnv') }
-          }) }
+          return { ok: true, value: await Promise.all(Object.keys(providers).map(name => providerSummary(ctx, providers, name))) }
         }
         if (endpoint === 'list') {
-          const c = clientFor(providers, p.provider); const r = await c.list(p.prefix, p.maxKeys, signal)
+          const c = await clientFor(ctx, providers, p.provider); const r = await c.list(p.prefix, p.maxKeys, signal)
           return { ok: true, value: r }
         }
         if (endpoint === 'put') {
-          const c = clientFor(providers, p.provider)
+          const c = await clientFor(ctx, providers, p.provider)
           const body = p.binary ? Buffer.from(p.content, 'base64') : p.content
           await c.put(p.key, body, p.contentType || 'text/plain; charset=utf-8', signal)
           return { ok: true, value: { bytes: Buffer.byteLength(body), url: c.objectUrl(p.key) } }
         }
         if (endpoint === 'putBatch') {
-          const c = clientFor(providers, p.provider)
+          const c = await clientFor(ctx, providers, p.provider)
           const items = Array.isArray(p.files) ? p.files : []
           const pfx = typeof p.prefix === 'string' ? p.prefix.replace(/\/+$/,'') : ''
           let ok=0, failed=0, bytes=0; const errors=[]
@@ -254,17 +267,17 @@ function applyOssRpc(ctx, providers) {
           return { ok: true, value: { ok, failed, bytes, errors: errors.slice(0,20) } }
         }
         if (endpoint === 'getText') {
-          const c = clientFor(providers, p.provider)
+          const c = await clientFor(ctx, providers, p.provider)
           const buf = await c.get(p.key, signal)
           const text = buf.toString('utf8'); const tr = text.length > MAX_INLINE_CHARS
           return { ok: true, value: { bytes: buf.length, content: tr ? text.slice(0,MAX_INLINE_CHARS) : text, truncated: tr } }
         }
         if (endpoint === 'delete') {
-          const c = clientFor(providers, p.provider); await c.delete(p.key, signal)
+          const c = await clientFor(ctx, providers, p.provider); await c.delete(p.key, signal)
           return { ok: true, value: { deleted: true } }
         }
         if (endpoint === 'deleteFolder') {
-          const c = clientFor(providers, p.provider)
+          const c = await clientFor(ctx, providers, p.provider)
           const r = await deleteFolderRecursive(c, p.prefix || '', signal)
           return { ok: true, value: r }
         }
@@ -289,8 +302,8 @@ function applyOssRpc(ctx, providers) {
           const localPath = p.localPath
           const ossProvider = p.provider
           const ossPrefix = (p.ossPrefix || '').replace(/\/+$/, '')
-          if (!localPath) return { ok: false, error: { id: 'bad-args', message: 'localPath required' } }
-          const c = clientFor(providers, ossProvider)
+          if (!localPath) return { ok: false, error: { code: 'bad-request', message: 'localPath required', details: { issues: [] } } }
+          const c = await clientFor(ctx, providers, ossProvider)
           const allFiles = []
           async function walk(dir, relBase) {
             const entries = await readdir(dir, { withFileTypes: true })
@@ -316,13 +329,11 @@ function applyOssRpc(ctx, providers) {
           }
           return { ok: true, value: { total: allFiles.length, ok: ok2, failed: failed2, bytes: totalBytes2, errors: errors2.slice(0, 20) } }
         }
-        return { ok: false, error: { id: 'unknown-endpoint', message: "unknown endpoint '"+endpoint+"'" } }
+        return { ok: false, error: { code: 'bad-request', message: "unknown endpoint '"+endpoint+"'", details: { issues: [] } } }
       } catch (err) {
-        return { ok: false, error: { id: 'oss-error', message: err?.message || String(err) } }
+        return { ok: false, error: { code: signal?.aborted ? 'cancelled' : 'internal', message: err?.message || String(err), details: {} } }
       }
-    }, { authority: 'trusted-host' })
-    return () => { dispose.then(d => d && d()).catch(() => {}) }
-  })
+    }, { authority: 'loopback' })
 }
 
 // ── Entry ────────────────────────────────────────────────────────────────────

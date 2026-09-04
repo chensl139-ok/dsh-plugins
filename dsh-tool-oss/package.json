@@ -1,6 +1,6 @@
 {
   "name": "dsh-tool-oss",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Model-facing OSS tool + Client OSS file browser: upload/download/list/delete on S3-compatible clouds (Tencent COS, Aliyun OSS, SiliconFlow).",
   "type": "module",
   "main": "index.js",
@@ -21,6 +21,7 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/dsh-credentials": "*",
     "@deepseek-ai/dsh-tools": "*",
     "@deepseek-ai/schemastery": "*",
     "@deepseek-ai/dsh-client-runtime": "*",

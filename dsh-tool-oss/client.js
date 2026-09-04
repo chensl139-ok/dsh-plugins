@@ -311,7 +311,7 @@ window.__ModuleLoader__.load({
       });
       body.push(React.createElement("div", { key:"prov", style:{ display:"flex", gap:"6px", alignItems:"center", flexWrap:"wrap" } },
         React.createElement("span", { style:{ fontSize:"12px", color:"var(--dsw-alias-label-secondary, #888)" } }, "Bucket:"),
-        pb.length ? pb : React.createElement("span", { style:{ fontSize:"12px", color:"var(--dsw-alias-label-secondary, #888)" } }, "(无 — 检查环境变量)")
+        pb.length ? pb : React.createElement("span", { style:{ fontSize:"12px", color:"var(--dsw-alias-label-secondary, #888)" } }, "(无 — 检查 DSH 凭据引用)")
       ));
 
       // Breadcrumb + actions
