@@ -4,7 +4,9 @@ DeepSeek Harness 本地插件集合。本仓库用于统一管理和分发 DSH �
 
 ## 最新发布
 
-[v1.4.0 — SiliconFlow Responses 兼容桥接](https://github.com/chensl139-ok/dsh-plugins/releases/tag/v1.4.0) 包含 `dsh-siliconflow-compat@0.2.1`、源码插件安装包和 SHA-256 校验文件。仓库 Release 版本与各插件版本独立管理；已有 OSS 和归档插件保持各自版本。
+[v1.5.0 — 归档面板适配 DSH 0.2.2](https://github.com/chensl139-ok/dsh-plugins/releases/tag/v1.5.0) 将 `dsh-ui-archived-local` 更新到 **0.3.0**，对应独立插件 [dsh-archived-panel 0.5.1](https://github.com/chensl139-ok/dsh-archived-panel/releases/tag/v0.5.1)。它提供左侧原生归档面板，并可永久删除已归档会话的日志。**不要把 `patches/` 中的旧 Host diff 应用到 DSH 0.2.2。** 安装或覆盖后重启 DSH。
+
+OSS 与 SiliconFlow 插件版本不变。上一版集合说明仍见 [v1.4.0](https://github.com/chensl139-ok/dsh-plugins/releases/tag/v1.4.0)。
 
 ## v1.3.0：归档删除修复
 
@@ -103,7 +105,7 @@ pnpm dsh web
 | 插件 | 版本 | 说明 |
 |---|---|---|
 | [dsh-tool-oss](./dsh-tool-oss/) | v0.3.0 | OSS 对象存储文件浏览器，支持多 Bucket、文件/文件夹上传、递归删除，对接硅基流动 / 腾讯云 COS / 阿里云 OSS 等任意 S3 兼容存储 |
-| [dsh-ui-archived-local](./dsh-ui-archived-local/) | v0.2.1 | 归档面板插件，侧边栏「已归档」面板，支持查看/打开/取消归档/永久删除，自定义居中确认弹窗替代 `window.confirm` |
+| [dsh-ui-archived-local](./dsh-ui-archived-local/) | v0.3.0 | DSH 0.2.2 归档面板：搜索、恢复、恢复并打开、永久删除已归档会话日志 |
 | [dsh-siliconflow-compat](./dsh-siliconflow-compat/) | v0.2.1 | Responses → Messages 兼容桥接、官方端点修正；依赖 Harness 源码 |
 
 ---
@@ -137,9 +139,9 @@ local-plugins/
 │   ├── index.js               # Host: oss 模型工具 + /oss RPC 通道
 │   ├── client.js              # Client: 文件浏览面板 + 上传对话框
 │   └── package.json           # dsh.client 声明
-└── dsh-ui-archived-local/     # 归档面板覆盖插件
-    ├── index.js               # Host: 空 apply 占位
-    ├── client.js              # Client: 自定义居中确认弹窗替代 window.confirm
+└── dsh-ui-archived-local/     # DSH 0.2.2 归档面板
+    ├── index.js               # Host: 删除已归档会话日志
+    ├── client.js              # Client: 左侧归档面板
     └── package.json
 ```
 
@@ -220,9 +222,7 @@ source ~/.zshrc
           #   accessKeyIdEnv: TENCENT_COS_AK
           #   secretAccessKeyEnv: TENCENT_COS_SK
 
-# 归档面板覆盖（可选）
-- id: ui-archived
-  disabled: true
+# 归档面板（DSH 0.2.2 不需要禁用旧的 ui-archived）
 - insert:
     - id: ui-archived-local
       name: dsh-ui-archived-local
@@ -270,57 +270,32 @@ pnpm dsh web
 
 ## dsh-ui-archived-local
 
-侧边栏「已归档」面板插件。在 DSH 侧边栏提供归档会话列表，支持查看、打开、取消归档和永久删除。将原 shipped `ui-archived` 的 `window.confirm` / `window.alert` 替换为自定义居中 `ModalDialog`。
+DSH 0.2.2 的归档会话面板，版本 **0.3.0**，与 [dsh-archived-panel 0.5.1](https://github.com/chensl139-ok/dsh-archived-panel/releases/tag/v0.5.1) 相同。
 
 ### 功能
 
-- 显示已归档会话的标题、工作区和相对时间
-- 点击会话即可重新打开
-- Host 支持 `unarchiveSession` 时可以取消归档
-- Host 支持 `deleteSession` 时可以永久删除（删除前居中确认弹窗）
-- Host 尚未安装补丁时自动隐藏对应操作按钮，查看和打开功能不受影响
-- 所有确认/错误弹窗均为自定义居中 `ModalDialog`（非原生 `window.confirm`）
+- 左侧导航打开“已归档会话”。
+- 搜索标题、工作区或会话 ID，按工作区筛选并按更新时间排序。
+- 恢复，或恢复后再打开。
+- 确认后永久删除已归档会话自己的 JSONL 目录，并摘除工作区、置顶和归档索引。
+- 正在运行或仍被占用的会话会被拒绝。项目目录和已导出文件保留。
 
-### 修复删除不彻底（必须更新 Host）
+**不要应用 `patches/` 里的旧 diff。** 那些补丁只适用于更早的 Harness 源码。0.3.0 不修改 DSH 安装包。
 
-0.2.1 补齐了历史恢复和分叉会话的所有权记录，修复误报 `session-live`，并清理持久化展示缓存。已应用上一版后端修复的部署可使用 `deleteSession-0.4.1.diff` 增量升级，重建后重启。
-
-前端现已保留删除失败的归档项，显示错误并允许重试；删除期间禁用重复操作。支持搜索、工作区筛选、更新时间排序和居中确认框。
-
-后端修复见 [补丁与适用基线](dsh-ui-archived-local/patches/README.md)：先释放自己持有的闲置 Agent / Session，等待最终写入结束，再删除 JSONL / SQLite 记录、工作区成员和归档索引。**安装脚本只更新插件；后端补丁需要应用、构建并重启 DSH，不能只刷新浏览器。**
-
-浏览器代码由 [dsh-archived-panel](https://github.com/chensl139-ok/dsh-archived-panel) 源码生成。维护时在该仓库执行 `pnpm build` 和 `pnpm export:local /path/to/dsh-plugins/dsh-ui-archived-local`，再同步版本与文档。
-
-### Complete deletion fix
-
-The frontend preserves failed archive entries for retry and blocks duplicate operations. The [Host patch](dsh-ui-archived-local/patches/README.md) disposes owned idle agents, drains pending writes, then deletes durable records and workspace/archive indexes. Installing the plugin alone is insufficient: apply the matching Host patch, rebuild and restart DSH. The browser artifact is generated from dsh-archived-panel source.
-
-### Host 补丁（可选）
-
-`patches/` 目录包含为 DSH 源码添加 `unarchiveSession` 和 `deleteSession` 的可选补丁：
-
-```
-patches/
-├── unarchiveSession.diff          # 为 workspaces 服务添加 unarchiveSession 方法
-├── unarchiveSession.tests.diff    # 对应测试
-├── deleteSession.diff             # 为 workspaces 服务添加 deleteSession 方法
-├── deleteSession.tests.diff       # 对应测试
-└── README.md                      # 补丁说明和应用步骤
-```
-
-不安装补丁时面板自动降级为查看 + 打开模式。
+维护时在 `dsh-archived-panel` 执行 `pnpm build`，把 `lib/index.mjs` 复制为 `index.js`，把 `lib/client.js` 的模块 id 改为 `dsh-ui-archived-local`。
 
 ### 安装
 
-在 `cordis.patch.yml` 中禁用 shipped `ui-archived` 并挂载本地版：
-
 ```yaml
-- id: ui-archived
-  disabled: true
-
 - insert:
     - id: ui-archived-local
       name: dsh-ui-archived-local
+```
+
+DSH 0.2.2 没有需要禁用的 `ui-archived` 行。覆盖旧目录后重启 DSH。也可以直接安装独立包：
+
+```sh
+dsh plugin --profile desktop add ./dsh-archived-panel-0.5.1.tgz
 ```
 
 ## dsh-siliconflow-compat

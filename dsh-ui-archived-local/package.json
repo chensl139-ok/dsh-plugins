@@ -1,28 +1,39 @@
 {
   "name": "dsh-ui-archived-local",
-  "version": "0.2.1",
-  "description": "Searchable archive panel with retryable deletion, pending state and accessible centered confirmation.",
+  "version": "0.3.0",
+  "description": "DSH 0.2.2 archived-session panel: search, restore, and permanently delete an archived session log.",
   "type": "module",
   "main": "index.js",
   "license": "MIT",
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
     "./package.json": "./package.json"
   },
   "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "inject": [
-        "@deepseek-ai/dsh-client-runtime",
-        "@deepseek-ai/dsh-client-ui-slots"
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-workspace",
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-locale"
       ],
-      "platform": "web"
+      "platform": "web",
+      "immediately": true
     }
   },
+  "engines": {
+    "node": ">=24.9.0",
+    "dsh": ">=0.2.2-rc.5 <0.3.0"
+  },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "*",
-    "@deepseek-ai/dsh-client-runtime": "*",
-    "@deepseek-ai/dsh-client-ui-slots": "*",
+    "@deepseek-ai/cordis": "^4.1.0",
     "react": "^18.2.0"
   }
 }

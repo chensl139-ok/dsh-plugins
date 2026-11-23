@@ -32,7 +32,7 @@ PLUGINS_DIR="$PROFILE_DIR/local-plugins"
 # 可用插件清单
 declare -a AVAILABLE=(
   "dsh-tool-oss|OSS 对象存储文件浏览器（多 Bucket、文件/文件夹上传、递归删除）"
-  "dsh-ui-archived-local|归档面板（自定义居中确认弹窗替代 window.confirm）"
+  "dsh-ui-archived-local|归档面板（DSH 0.2.2：搜索、恢复、永久删除）"
   "dsh-siliconflow-compat|SiliconFlow Responses → Messages 兼容桥接与端点修正"
 )
 
@@ -161,9 +161,7 @@ if echo "${PLUGINS[@]}" | grep -qw 'dsh-ui-archived-local' && [ "$has_archived" 
   echo "📝 配置 dsh-ui-archived-local…"
   cat >> "$PATCH" << 'YAML'
 
-# ── dsh-ui-archived-local ──
-- id: ui-archived
-  disabled: true
+# ── dsh-ui-archived-local: DSH 0.2.2 archived sessions ──
 - insert:
     - id: ui-archived-local
       name: dsh-ui-archived-local

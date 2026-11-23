@@ -1,3 +1,9 @@
+# 0.3.0 — 2026-11-23
+
+- Sync [dsh-archived-panel 0.5.1](https://github.com/chensl139-ok/dsh-archived-panel/releases/tag/v0.5.1) for DSH 0.2.2-rc.5.
+- Replace the removed client runtime with a native sidebar panel.
+- Delete only an archived session's own JSONL directory. No Host source patch is required, and the historical patches must not be applied to DSH 0.2.2.
+
 # 0.4.1 — 2026-09-05
 
 - Fix false `session-live` rejection after opening history through the Remote/Typert resolver or forking a session: retain disposal handles on both paths.
